@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一元二次方程圖解法互動學習平台</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for fast, reliable LaTeX Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Mobile-first responsive canvas container height */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+        }
+        @media (min-width: 640px) {
+            .canvas-container { height: 340px; }
+        }
+        @media (min-width: 1024px) {
+            .canvas-container { height: 420px; }
+        }
+        /* Touch optimization & tap area enhancements */
+        input[type=range] {
+            height: 36px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        /* Horizontal scroll container for long math equations on mobile */
+        .math-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+        .katex { font-size: 1.05em; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center py-2.5 sm:py-0 sm:h-16 gap-2">
+            <div class="flex items-center space-x-2.5 w-full sm:w-auto justify-between sm:justify-start">
+                <div class="flex items-center space-x-2.5">
+                    <div class="bg-blue-500 p-1.5 sm:p-2 rounded-lg text-white font-bold shrink-0">
+                        <i class="fa-solid fa-chart-line text-lg sm:text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-bold leading-tight">中四數學科 互動學習平台</h1>
+                        <p class="text-[11px] sm:text-xs text-indigo-200">3.2 圖解法 & 判別式 $\Delta$</p>
+                    </div>
+                </div>
+                <!-- 雙語模式切換按鈕 (Mobile Top Right) -->
+                <button onclick="toggleBilingual()" id="btn-lang" class="sm:hidden px-2.5 py-1 rounded-lg bg-indigo-800 hover:bg-indigo-700 text-amber-300 border border-amber-400/40 transition flex items-center space-x-1 text-xs font-bold shadow-sm shrink-0">
+                    <i class="fa-solid fa-language text-sm"></i>
+                    <span id="lang-label-mobile">Eng: OFF</span>
+                </button>
+            </div>
+            <!-- Tab 切換按鈕與雙語切換 (Mobile bottom header row) -->
+            <nav class="flex items-center justify-between sm:justify-end w-full sm:w-auto space-x-1.5 sm:space-x-3 text-xs sm:text-sm font-medium">
+                <!-- 雙語模式切換按鈕 (Desktop) -->
+                <button onclick="toggleBilingual()" id="btn-lang-desktop" class="hidden sm:flex px-3 py-1.5 rounded-lg bg-indigo-800 hover:bg-indigo-700 text-amber-300 border border-amber-400/40 transition items-center space-x-1.5 text-xs font-bold shadow-sm">
+                    <i class="fa-solid fa-language text-base"></i>
+                    <span id="lang-label">English Subtitles: OFF</span>
+                </button>
+                <button onclick="switchTab('explorer')" id="tab-explorer" class="flex-1 sm:flex-initial text-center py-2 sm:py-1.5 px-3 rounded-lg hover:bg-indigo-800 transition bg-blue-600 text-white font-semibold">
+                    <i class="fa-solid fa-square-root-variable mr-1"></i> 動態圖像
+                </button>
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="flex-1 sm:flex-initial text-center py-2 sm:py-1.5 px-3 rounded-lg hover:bg-indigo-800 transition text-indigo-200 font-semibold">
+                    <i class="fa-solid fa-gamepad mr-1"></i> 課堂即時挑戰
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">
+
+        <!-- TAB 1: 動態圖像與判別式探索器 -->
+        <section id="section-explorer" class="space-y-4 sm:space-y-6">
+            <!-- 學習提示橫幅 -->
+            <div id="learning-focus-banner" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3.5 sm:p-4 rounded-xl shadow-md flex items-center justify-between transition-all duration-300">
+                <div class="flex items-center space-x-2.5 sm:space-x-3 pr-2">
+                    <span class="bg-white text-blue-600 text-[11px] sm:text-xs font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0">學習重點</span>
+                    <p class="text-xs sm:text-base font-medium leading-normal">
+                        透過動態調整係數，直觀探索二次圖像 $y=ax^2+bx+c$ 的 $x$-截距與判別式 $\Delta$ 正負號之對應關係。
+                        <span class="en-text block text-[11px] text-blue-100 font-normal mt-0.5 hidden">
+                            Explore relation between $x$-intercepts and discriminant $\Delta = b^2-4ac$.
+                        </span>
+                    </p>
+                </div>
+                <button onclick="document.getElementById('learning-focus-banner').classList.add('hidden')" title="隱藏 / Hide" class="text-blue-100 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition shrink-0 flex items-center justify-center focus:outline-none" aria-label="Close banner">
+                    <i class="fa-solid fa-xmark text-base sm:text-lg"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+                
+                <!-- 右側繪圖畫布與分析 (Moved first on mobile for immediate visual feedback) -->
+                <div class="lg:col-span-7 order-1 lg:order-2 space-y-4 sm:space-y-5">
+                    
+                    <!-- Canvas 畫布卡片 -->
+                    <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex flex-wrap justify-between items-center mb-2 sm:mb-3 gap-1">
+                            <h3 class="font-bold text-slate-800 text-xs sm:text-base flex items-center">
+                                <i class="fa-solid fa-chart-area text-blue-600 mr-1.5"></i> 拋物線圖像 $y = ax^2 + bx + c$
+                            </h3>
+                            <div class="flex space-x-3 text-[11px] sm:text-xs">
+                                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-red-500 mr-1"></span> $x$-截距</span>
+                                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-1"></span> 頂點</span>
+                            </div>
+                        </div>
+
+                        <!-- Canvas HTML -->
+                        <div class="canvas-container">
+                            <canvas id="graphCanvas" class="w-full h-full touch-none"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 圖像與根的關係結論卡片 -->
+                    <div id="conclusion-card" class="p-3.5 sm:p-5 rounded-xl border-2 transition-all duration-300 bg-emerald-50 border-emerald-300 text-emerald-900">
+                        <div class="flex items-start space-x-3 sm:space-x-4">
+                            <div id="conclusion-icon" class="text-2xl sm:text-3xl text-emerald-600 mt-0.5 shrink-0">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="space-y-1 w-full overflow-hidden">
+                                <h4 id="conclusion-title" class="font-bold text-xs sm:text-base">情況 1：圖像與 $x$ 軸相交於兩點 ($\Delta > 0$)</h4>
+                                <p id="conclusion-desc" class="text-xs sm:text-sm leading-relaxed">
+                                    圖像有 <strong class="text-emerald-700">2 個 $x$-截距</strong>。對應的一元二次方程 $ax^2+bx+c=0$ 有 <strong class="underline">兩個相異實根</strong> (Two distinct real roots)。
+                                </p>
+                                <div id="conclusion-roots" class="text-xs font-mono font-bold bg-white/80 p-2 rounded border border-emerald-200 mt-2 text-emerald-800 math-scroll">
+                                    $x$-截距 / 方程的實根: $x_1 \approx -2.00$, $x_2 \approx 1.00$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 左側控制面板 (Order 2 on mobile) -->
+                <div class="lg:col-span-5 order-2 lg:order-1 space-y-4 sm:space-y-5">
+                    
+                    <!-- 手動滑桿控制 -->
+                    <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 space-y-3 sm:space-y-4 no-select">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                            <span><i class="fa-solid fa-sliders text-indigo-500 mr-1.5"></i> 自由調整二次函數係數</span>
+                            <button onclick="resetSliders()" class="text-xs text-blue-600 hover:underline px-2 py-0.5 bg-slate-100 sm:bg-transparent rounded sm:rounded-none">重置參數</button>
+                        </h3>
+
+                        <!-- 係數 a -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs sm:text-sm font-bold text-slate-700">係數 $a$ <span class="en-text text-slate-400 font-normal hidden">(Opening)</span>:</label>
+                                <span id="val-a" class="font-mono font-bold text-blue-600 text-sm sm:text-base bg-blue-50 px-2 py-0.5 rounded">1</span>
+                            </div>
+                            <input type="range" id="slider-a" min="-6" max="6" step="0.5" value="1" oninput="updateGraph()" class="w-full accent-blue-600">
+                            <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">$a > 0$ 開口向上 (upward)， $a < 0$ 開口向下 (downward)</p>
+                        </div>
+
+                        <!-- 係數 b -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs sm:text-sm font-bold text-slate-700">係數 $b$ <span class="en-text text-slate-400 font-normal hidden">(Axis)</span>:</label>
+                                <span id="val-b" class="font-mono font-bold text-blue-600 text-sm sm:text-base bg-blue-50 px-2 py-0.5 rounded">1</span>
+                            </div>
+                            <input type="range" id="slider-b" min="-24" max="24" step="1" value="1" oninput="updateGraph()" class="w-full accent-blue-600">
+                        </div>
+
+                        <!-- 係數 c -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs sm:text-sm font-bold text-slate-700">係數 $c$ <span class="en-text text-slate-400 font-normal hidden">($y$-intercept)</span>:</label>
+                                <span id="val-c" class="font-mono font-bold text-blue-600 text-sm sm:text-base bg-blue-50 px-2 py-0.5 rounded">-2</span>
+                            </div>
+                            <input type="range" id="slider-c" min="-25" max="25" step="1" value="-2" oninput="updateGraph()" class="w-full accent-blue-600">
+                        </div>
+                    </div>
+
+                    <!-- 即時判別式計算卡片 -->
+                    <div class="bg-indigo-900 text-white p-4 sm:p-5 rounded-xl shadow-lg space-y-3">
+                        <div class="flex justify-between items-center border-b border-indigo-700/60 pb-2">
+                            <h4 class="font-bold text-xs sm:text-sm flex items-center">
+                                <i class="fa-solid fa-calculator text-amber-400 mr-1.5"></i> 判別式 $\Delta$ 即時拆解步驟
+                            </h4>
+                            <span id="badge-delta-sign" class="px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-emerald-500 text-white shrink-0">
+                                $\Delta > 0$
+                            </span>
+                        </div>
+                        <div id="calc-card" class="font-mono text-xs sm:text-sm space-y-1.5 bg-indigo-950/70 p-3 rounded-lg border border-indigo-800 math-scroll">
+                            <div class="text-indigo-300">方程: <span id="eq-display" class="text-white font-bold">$x^2 + x - 2 = 0$</span></div>
+                            <div class="text-indigo-300">公式: $\Delta = b^2 - 4ac$</div>
+                            <div class="text-indigo-200">代入: <span id="calc-steps-display" class="text-indigo-100 font-bold"></span></div>
+                            <div class="text-amber-300 font-bold text-sm sm:text-base pt-1">計算結果: <span id="calc-result-display" class="text-amber-300 font-bold"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- 課本及 DSE 試題快速載入 -->
+                    <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+                            <span><i class="fa-solid fa-bookmark text-blue-500 mr-1.5"></i> 快速例題載入 (課本 & DSE 題型)</span>
+                        </h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button onclick="loadPreset(1, 1, -2)" class="text-left px-3 py-2.5 bg-slate-50 hover:bg-blue-50 active:bg-blue-100 border border-slate-200 hover:border-blue-300 rounded-lg text-xs sm:text-sm font-medium transition flex justify-between items-center">
+                                <span><strong class="text-blue-600">例 1:</strong> $y = x^2 + x - 2$</span>
+                                <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[11px] font-bold shrink-0 ml-1">2個相異實根</span>
+                            </button>
+                            <button onclick="loadPreset(-4, 12, -9)" class="text-left px-3 py-2.5 bg-slate-50 hover:bg-blue-50 active:bg-blue-100 border border-slate-200 hover:border-blue-300 rounded-lg text-xs sm:text-sm font-medium transition flex justify-between items-center">
+                                <span><strong class="text-blue-600">例 2:</strong> $y = -4x^2 + 12x - 9$</span>
+                                <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[11px] font-bold shrink-0 ml-1">1個二重實根</span>
+                            </button>
+                            <button onclick="loadPreset(4, -7, 5)" class="text-left px-3 py-2.5 bg-slate-50 hover:bg-blue-50 active:bg-blue-100 border border-slate-200 hover:border-blue-300 rounded-lg text-xs sm:text-sm font-medium transition flex justify-between items-center">
+                                <span><strong class="text-blue-600">例 3:</strong> $y = 4x^2 - 7x + 5$</span>
+                                <span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[11px] font-bold shrink-0 ml-1">沒有實根</span>
+                            </button>
+                            <!-- DSE 試題按鈕 -->
+                            <div class="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2">
+                                <button onclick="loadPreset(6, -24, 10)" class="text-left p-2.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 border border-indigo-200 rounded-lg text-xs font-medium transition">
+                                    <div class="text-indigo-800 font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i> DSE 第 7 題</div>
+                                    <div class="text-slate-600 font-mono text-[11px]">$6x^2-24x+10=0$</div>
+                                </button>
+                                <button onclick="loadPreset(2, 12, 10)" class="text-left p-2.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 border border-indigo-200 rounded-lg text-xs font-medium transition">
+                                    <div class="text-indigo-800 font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i> DSE 第 8 題</div>
+                                    <div class="text-slate-600 font-mono text-[11px]">$2x^2+12x+10=0$</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: 課堂即時挑戰 (Quiz Game) -->
+        <section id="section-quiz" class="hidden space-y-6">
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3 sm:pb-4 mb-4 sm:mb-5 gap-2">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center">
+                            <i class="fa-solid fa-gamepad text-indigo-600 mr-2"></i> 課堂即時小測試
+                        </h2>
+                        <p class="text-[11px] sm:text-xs text-slate-500">鞏固 $x$-截距與判別式 $\Delta$ 的對應關係</p>
+                    </div>
+                    <div class="bg-indigo-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-indigo-100 text-right shrink-0">
+                        <span class="text-[10px] sm:text-xs text-slate-500 block">目前得分</span>
+                        <div id="quiz-score" class="text-base sm:text-lg font-black text-indigo-600 leading-none">0 / 5</div>
+                    </div>
+                </div>
+
+                <!-- 題目卡片容器 -->
+                <div id="quiz-card" class="space-y-4 sm:space-y-5">
+                    <div class="flex justify-between items-center text-xs text-slate-400 font-bold uppercase tracking-wider">
+                        <span id="quiz-progress">題目 1 / 5</span>
+                        <span id="quiz-category" class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold text-[11px]">概念測試</span>
+                    </div>
+
+                    <h3 id="quiz-question" class="text-sm sm:text-base font-bold text-slate-800 leading-relaxed">
+                        載入題目中...
+                    </h3>
+
+                    <!-- 選項按鈕列表 -->
+                    <div id="quiz-options" class="grid grid-cols-1 gap-2 sm:gap-2.5">
+                        <!-- 動態插入選項 -->
+                    </div>
+
+                    <!-- 解析回饋卡片 -->
+                    <div id="quiz-feedback" class="hidden p-3.5 sm:p-4 rounded-xl text-xs sm:text-sm space-y-2">
+                        <div id="feedback-header" class="font-bold flex items-center"></div>
+                        <p id="feedback-body" class="text-xs leading-relaxed math-scroll"></p>
+                        <button onclick="nextQuestion()" class="mt-2 text-xs font-bold bg-slate-800 hover:bg-slate-900 active:bg-black text-white px-4 py-2 rounded-lg transition w-full sm:w-auto">
+                            下一題 <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 完成測驗結算畫面 -->
+                <div id="quiz-result" class="hidden text-center py-6 sm:py-8 space-y-4">
+                    <div class="text-4xl sm:text-5xl text-yellow-400"><i class="fa-solid fa-trophy"></i></div>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-800">挑戰完成！</h3>
+                    <p class="text-xs sm:text-sm text-slate-600">你的最終得分是 <strong id="final-score" class="text-indigo-600 text-lg sm:text-xl">0</strong> / 5</p>
+                    <p id="final-comment" class="text-xs text-slate-500 max-w-md mx-auto"></p>
+                    <button onclick="restartQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl transition text-xs sm:text-sm">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> 重新挑戰
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 text-center border-t border-slate-800">
+        <p>香港中學數學科 中四級 3.2 節互動教學工具 (涵蓋 HKDSE 卷一精選題型)</p>
+    </footer>
+
+    <script>
+        let currentTab = 'explorer';
+        let currentA = 1;
+        let currentB = 1;
+        let currentC = -2;
+        let isBilingual = false;
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        let canvas, ctx;
+
+        // Helper function to format values to 3 significant figures
+        function formatSigFig(val, precision = 3) {
+            if (val === 0 || isNaN(val)) return "0";
+            const rounded = Number(val.toPrecision(precision));
+            return rounded.toString();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            canvas = document.getElementById('graphCanvas');
+            ctx = canvas ? canvas.getContext('2d') : null;
+            updateGraph();
+            
+            // Auto re-render MathInElement on page load
+            setTimeout(() => {
+                renderMathInContainer(document.body);
+            }, 300);
+        });
+
+        window.addEventListener('resize', () => {
+            if (currentTab === 'explorer') {
+                updateGraph();
+            }
+        });
+
+        function renderLatexToElement(id, latex) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (window.katex) {
+                try {
+                    katex.render(latex, el, { throwOnError: false, displayMode: false });
+                } catch(e) {
+                    el.textContent = latex;
+                }
+            } else {
+                el.textContent = latex;
+            }
+        }
+
+        function renderMathInContainer(container) {
+            if (!container) return;
+            if (window.renderMathInElement) {
+                try {
+                    renderMathInElement(container, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                } catch(e) {}
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const secExplorer = document.getElementById('section-explorer');
+            const secQuiz = document.getElementById('section-quiz');
+            const btnExplorer = document.getElementById('tab-explorer');
+            const btnQuiz = document.getElementById('tab-quiz');
+
+            if (tab === 'explorer') {
+                secExplorer.classList.remove('hidden');
+                secQuiz.classList.add('hidden');
+                btnExplorer.className = "px-3 py-1.5 rounded-md hover:bg-indigo-800 transition bg-blue-600 text-white";
+                btnQuiz.className = "px-3 py-1.5 rounded-md hover:bg-indigo-800 transition text-indigo-200";
+                setTimeout(updateGraph, 50);
+            } else {
+                secExplorer.classList.add('hidden');
+                secQuiz.classList.remove('hidden');
+                btnExplorer.className = "px-3 py-1.5 rounded-md hover:bg-indigo-800 transition text-indigo-200";
+                btnQuiz.className = "px-3 py-1.5 rounded-md hover:bg-indigo-800 transition bg-blue-600 text-white";
+                initQuiz();
+            }
+        }
+
+        function toggleBilingual() {
+            isBilingual = !isBilingual;
+            const btnLabel = document.getElementById('lang-label');
+            const btnLabelMobile = document.getElementById('lang-label-mobile');
+            const btnDesktop = document.getElementById('btn-lang-desktop');
+            const btnMobile = document.getElementById('btn-lang');
+            const enTexts = document.querySelectorAll('.en-text');
+
+            if (isBilingual) {
+                if (btnLabel) btnLabel.innerText = "English Subtitles: ON";
+                if (btnLabelMobile) btnLabelMobile.innerText = "Eng: ON";
+                if (btnDesktop) btnDesktop.className = "hidden sm:flex px-3 py-1.5 rounded-lg bg-amber-400 text-slate-900 font-bold border border-amber-300 transition items-center space-x-1.5 text-xs shadow-md";
+                if (btnMobile) btnMobile.className = "sm:hidden px-2.5 py-1 rounded-lg bg-amber-400 text-slate-900 font-bold border border-amber-300 transition flex items-center space-x-1 text-xs shadow-md shrink-0";
+                enTexts.forEach(el => el.classList.remove('hidden'));
+            } else {
+                if (btnLabel) btnLabel.innerText = "English Subtitles: OFF";
+                if (btnLabelMobile) btnLabelMobile.innerText = "Eng: OFF";
+                if (btnDesktop) btnDesktop.className = "hidden sm:flex px-3 py-1.5 rounded-lg bg-indigo-800 hover:bg-indigo-700 text-amber-300 border border-amber-400/40 transition items-center space-x-1.5 text-xs font-bold shadow-sm";
+                if (btnMobile) btnMobile.className = "sm:hidden px-2.5 py-1 rounded-lg bg-indigo-800 hover:bg-indigo-700 text-amber-300 border border-amber-400/40 transition flex items-center space-x-1 text-xs font-bold shadow-sm shrink-0";
+                enTexts.forEach(el => el.classList.add('hidden'));
+            }
+
+            updateGraph();
+            if (currentTab === 'quiz') {
+                loadQuizQuestion();
+            }
+        }
+
+        function loadPreset(a, b, c) {
+            currentA = a;
+            currentB = b;
+            currentC = c;
+
+            document.getElementById('slider-a').value = a;
+            document.getElementById('slider-b').value = b;
+            document.getElementById('slider-c').value = c;
+
+            updateGraph();
+        }
+
+        function resetSliders() {
+            loadPreset(1, 1, -2);
+        }
+
+        function updateGraph() {
+            currentA = parseFloat(document.getElementById('slider-a').value) || 1;
+            currentB = parseFloat(document.getElementById('slider-b').value) || 0;
+            currentC = parseFloat(document.getElementById('slider-c').value) || 0;
+
+            document.getElementById('val-a').innerText = currentA;
+            document.getElementById('val-b').innerText = currentB;
+            document.getElementById('val-c').innerText = currentC;
+
+            const delta = currentB * currentB - 4 * currentA * currentC;
+
+            updateEquationUI(delta);
+            drawCanvasGraph(currentA, currentB, currentC, delta);
+        }
+
+        function drawCanvasGraph(a, b, c, delta) {
+            if (!canvas) return;
+            const container = canvas.parentNode;
+            canvas.width = container.clientWidth || 600;
+            canvas.height = container.clientHeight || 420;
+
+            const w = canvas.width;
+            const h = canvas.height;
+            const originX = w / 2;
+            const originY = h / 2 + 20;
+            const scale = 25; // 25px per math unit
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw grid
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            for (let x = originX % scale; x < w; x += scale) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+            for (let y = originY % scale; y < h; y += scale) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            // Draw Axes
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+
+            // X-axis
+            ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
+            // Y-axis
+            ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, h); ctx.stroke();
+
+            // Axis labels & Ticks
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('x', w - 15, originY - 8);
+            ctx.fillText('y', originX + 8, 15);
+            ctx.fillText('0', originX - 12, originY + 15);
+
+            for (let xMath = -10; xMath <= 10; xMath += 2) {
+                if (xMath === 0) continue;
+                const sx = originX + xMath * scale;
+                if (sx > 10 && sx < w - 10) {
+                    ctx.beginPath(); ctx.moveTo(sx, originY - 4); ctx.lineTo(sx, originY + 4); ctx.stroke();
+                    ctx.fillText(xMath, sx - 6, originY + 16);
+                }
+            }
+
+            // Draw Parabola
+            ctx.strokeStyle = '#4f46e5';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            let first = true;
+
+            for (let px = 0; px <= w; px += 2) {
+                const xMath = (px - originX) / scale;
+                const yMath = a * xMath * xMath + b * xMath + c;
+                const py = originY - yMath * scale;
+
+                if (first) {
+                    ctx.moveTo(px, py);
+                    first = false;
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.stroke();
+
+            // Vertex
+            const vxMath = -b / (2 * a);
+            const vyMath = c - (b * b) / (4 * a);
+            const svx = originX + vxMath * scale;
+            const svy = originY - vyMath * scale;
+
+            if (svx >= 0 && svx <= w && svy >= 0 && svy <= h) {
+                ctx.fillStyle = '#2563eb';
+                ctx.beginPath();
+                ctx.arc(svx, svy, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#1e3a8a';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillText(`頂點 (${formatSigFig(vxMath, 3)}, ${formatSigFig(vyMath, 3)})`, svx + 8, svy - 8);
+            }
+
+            // Roots / Intercepts
+            if (delta > 0) {
+                const x1Math = (-b - Math.sqrt(delta)) / (2 * a);
+                const x2Math = (-b + Math.sqrt(delta)) / (2 * a);
+
+                [x1Math, x2Math].forEach((xM, i) => {
+                    const sx = originX + xM * scale;
+                    const sy = originY;
+                    if (sx >= 0 && sx <= w) {
+                        ctx.fillStyle = '#ef4444';
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#991b1b';
+                        ctx.font = 'bold 11px sans-serif';
+                        ctx.fillText(`x${i+1}=${formatSigFig(xM, 3)}`, sx - 12, sy + 18);
+                    }
+                });
+            } else if (Math.abs(delta) < 0.0001) {
+                const x0Math = -b / (2 * a);
+                const sx = originX + x0Math * scale;
+                const sy = originY;
+                if (sx >= 0 && sx <= w) {
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#92400e';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText(`x=${formatSigFig(x0Math, 3)}`, sx - 10, sy + 18);
+                }
+            }
+        }
+
+        function updateEquationUI(delta) {
+            // 方程 LaTeX 化
+            let eqStr = "";
+            if (currentA === 1) eqStr += "x^2 ";
+            else if (currentA === -1) eqStr += "-x^2 ";
+            else eqStr += `${currentA}x^2 `;
+
+            if (currentB > 0) eqStr += `+ ${currentB === 1 ? '' : currentB}x `;
+            else if (currentB < 0) eqStr += `- ${Math.abs(currentB) === 1 ? '' : Math.abs(currentB)}x `;
+
+            if (currentC > 0) eqStr += `+ ${currentC}`;
+            else if (currentC < 0) eqStr += `- ${Math.abs(currentC)}`;
+            eqStr += " = 0";
+
+            renderLatexToElement('eq-display', eqStr);
+
+            // 代入步驟與結果
+            const strA = currentA < 0 ? `(${currentA})` : `${currentA}`;
+            const strB = currentB < 0 ? `(${currentB})` : `${currentB}`;
+            const strC = currentC < 0 ? `(${currentC})` : `${currentC}`;
+
+            renderLatexToElement('calc-steps-display', `\\Delta = ${strB}^2 - 4(${strA})(${strC})`);
+            renderLatexToElement('calc-result-display', `\\Delta = ${formatSigFig(delta, 3)}`);
+
+            const badge = document.getElementById('badge-delta-sign');
+            const card = document.getElementById('conclusion-card');
+            const icon = document.getElementById('conclusion-icon');
+            const title = document.getElementById('conclusion-title');
+            const desc = document.getElementById('conclusion-desc');
+            const rootsBox = document.getElementById('conclusion-roots');
+
+            if (delta > 0) {
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500 text-white";
+                renderLatexToElement('badge-delta-sign', isBilingual ? '\\Delta > 0 \\text{ (Positive)}' : '\\Delta > 0 \\text{ (正數)}');
+
+                card.className = "p-5 rounded-xl border-2 transition-all duration-300 bg-emerald-50 border-emerald-300 text-emerald-900";
+                icon.className = "text-3xl text-emerald-600 mt-1";
+                icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                title.innerHTML = "情況 1：圖像與 $x$ 軸相交於兩點 ($\Delta > 0$)" + (isBilingual ? '<span class="block text-xs font-normal text-emerald-700 mt-0.5">Case 1: Graph intersects $x$-axis at 2 points ($\Delta > 0$)</span>' : '');
+                desc.innerHTML = '圖像有 <strong class="text-emerald-700">2 個 $x$-截距</strong>。對應的一元二次方程 $ax^2+bx+c=0$ 有 <strong class="underline">兩個相異實根</strong> (Two distinct real roots)。';
+
+                const x1 = (-currentB - Math.sqrt(delta)) / (2 * currentA);
+                const x2 = (-currentB + Math.sqrt(delta)) / (2 * currentA);
+                const rMin = formatSigFig(Math.min(x1, x2), 3);
+                const rMax = formatSigFig(Math.max(x1, x2), 3);
+                rootsBox.innerHTML = `$x$-截距 / 方程實根 (Intercepts / Real roots): $x_1 \\approx ${rMin}$, $x_2 \\approx ${rMax}$`;
+                rootsBox.classList.remove('hidden');
+
+            } else if (Math.abs(delta) < 0.0001) { // delta === 0
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white";
+                renderLatexToElement('badge-delta-sign', '\\Delta = 0');
+
+                card.className = "p-5 rounded-xl border-2 transition-all duration-300 bg-amber-50 border-amber-300 text-amber-900";
+                icon.className = "text-3xl text-amber-600 mt-1";
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                title.innerHTML = "情況 2：圖像與 $x$ 軸只相交(接觸)於一點 ($\Delta = 0$)" + (isBilingual ? '<span class="block text-xs font-normal text-amber-800 mt-0.5">Case 2: Graph touches $x$-axis at 1 point ($\Delta = 0$)</span>' : '');
+                desc.innerHTML = '圖像有 <strong class="text-amber-700">1 個 $x$-截距</strong>（頂點即交點）。對應的一元二次方程 $ax^2+bx+c=0$ 有 <strong class="underline">一個二重實根</strong> (One double real root / Equal real roots)。';
+
+                const x0 = formatSigFig(-currentB / (2 * currentA), 3);
+                rootsBox.innerHTML = `$x$-截距 / 方程二重根 (Intercept / Double root): $x = ${x0}$`;
+                rootsBox.classList.remove('hidden');
+
+            } else { // delta < 0
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500 text-white";
+                renderLatexToElement('badge-delta-sign', isBilingual ? '\\Delta < 0 \\text{ (Negative)}' : '\\Delta < 0 \\text{ (負數)}');
+
+                card.className = "p-5 rounded-xl border-2 transition-all duration-300 bg-rose-50 border-rose-300 text-rose-900";
+                icon.className = "text-3xl text-rose-600 mt-1";
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                title.innerHTML = "情況 3：圖像與 $x$ 軸沒有交點 ($\Delta < 0$)" + (isBilingual ? '<span class="block text-xs font-normal text-rose-800 mt-0.5">Case 3: Graph does not intersect $x$-axis ($\Delta < 0$)</span>' : '');
+                desc.innerHTML = '圖像 <strong class="text-rose-700">沒有 $x$-截距</strong>（完全在 $x$ 軸上方或下方）。對應的一元二次方程 $ax^2+bx+c=0$ <strong class="underline">沒有實根</strong> (No real roots)。';
+
+                rootsBox.innerHTML = "$x$-截距: 無 / 方程實根: 沒有實根 (No real roots)";
+                rootsBox.classList.remove('hidden');
+            }
+
+            renderMathInContainer(card);
+        }
+
+        const quizData = [
+            {
+                question: "1. 觀察二次函數 $y = ax^2 + bx + c$ 的圖像。若圖像與 $x$ 軸相交於 $(-3, 0)$ 和 $(1, 0)$ 兩點，對應方程 $ax^2 + bx + c = 0$ 的解是什麼？",
+                questionEn: "1. Consider the graph of $y = ax^2 + bx + c$. If the graph intersects the $x$-axis at $(-3, 0)$ and $(1, 0)$, what are the solutions to $ax^2 + bx + c = 0$?",
+                category: "圖像概念 (Graph Concept)",
+                options: [
+                    "$x = -3$ 或 $x = 1$",
+                    "$x = 3$ 或 $x = -1$",
+                    "$x = 0$",
+                    "沒有實根 (No real roots)"
+                ],
+                answer: 0,
+                explanation: "圖像在 $x$ 軸上的交點（$x$-截距 / $x$-intercepts）即為當 $y=0$ 時對應的 $x$ 值，因此方程的解就是 $x = -3$ 或 $x = 1$。"
+            },
+            {
+                question: "2. 若二次函數 $y = 2x^2 - 4x + k$ 的圖像與 $x$ 軸「沒有交點」，判別式 $\\Delta$ 的數值必定滿足以下哪項條件？",
+                questionEn: "2. If the graph of $y = 2x^2 - 4x + k$ has NO intersection with the $x$-axis, which condition must the discriminant $\\Delta$ satisfy?",
+                category: "判別式性質 (Discriminant Properties)",
+                options: [
+                    "$\\Delta > 0$",
+                    "$\\Delta = 0$",
+                    "$\\Delta < 0$",
+                    "無法確定 (Cannot be determined)"
+                ],
+                answer: 2,
+                explanation: "圖像與 $x$ 軸沒有交點 (no $x$-intercepts) 代表方程沒有實根 (no real roots)，因此判別式 $\\Delta = b^2 - 4ac < 0$ (負數/negative)。"
+            },
+            {
+                question: "3. 已知判別式 $\\Delta = b^2 - 4ac = 0$，則二次函數 $y = ax^2 + bx + c$ 的圖像與 $x$ 軸有幾個交點？",
+                questionEn: "3. Given that the discriminant $\\Delta = b^2 - 4ac = 0$, how many $x$-intercepts does the graph of $y = ax^2 + bx + c$ have?",
+                category: "二重根概念 (Double Root Concept)",
+                options: [
+                    "2 個相異交點 (2 distinct points)",
+                    "只有 1 個交點 / 頂點接觸 (Only 1 point / touches axis)",
+                    "沒有交點 (No points)",
+                    "無數個交點 (Infinitely many)"
+                ],
+                answer: 1,
+                explanation: "當 $\\Delta = 0$ 時，方程有一個二重實根 (one double real root)，圖像的頂點 (vertex) 恰好單點接觸 $x$ 軸，因此只有 1 個交點。"
+            },
+            {
+                question: "4. 對於方程 $x^2 - 6x + 9 = 0$，計算其判別式 $\\Delta$，並判斷圖像與 $x$ 軸的交點情況。",
+                questionEn: "4. For equation $x^2 - 6x + 9 = 0$, calculate its discriminant $\\Delta$ and determine the number of $x$-intercepts.",
+                category: "計算應用 (Calculations)",
+                options: [
+                    "$\\Delta = 72 > 0$，有 2 個交點 (2 points)",
+                    "$\\Delta = 0$，有 1 個交點 (1 point)",
+                    "$\\Delta = -72 < 0$，沒有交點 (No points)",
+                    "$\\Delta = -36 < 0$，沒有交點 (No points)"
+                ],
+                answer: 1,
+                explanation: "$\\Delta = (-6)^2 - 4(1)(9) = 36 - 36 = 0$。因為 $\\Delta = 0$，所以圖像與 $x$ 軸只有 1 個交點。"
+            },
+            {
+                question: "5. 【DSE 卷一實戰題】設 $c$ 為一實常數。已知方程 $6x^2 - 24x = c$ 有兩個相異的實根 (two distinct real roots)，求 $c$ 值的範圍 (range of values of $c$)。",
+                questionEn: "5. [HKDSE Paper 1] Let $c$ be a real constant. Given that $6x^2 - 24x = c$ has two distinct real roots, find the range of values of $c$.",
+                category: "HKDSE 試題銜接 (DSE Exam Practice)",
+                options: [
+                    "$c > -24$",
+                    "$c < -24$",
+                    "$c > 24$",
+                    "$c < 24$"
+                ],
+                answer: 0,
+                explanation: "【DSE 解題技巧】：先將方程移項為標準式 (Rearrange to standard form): $6x^2 - 24x - c = 0$。<br>其中 $a = 6$, $b = -24$, 常數項為 $-c$。<br>方程有兩個相異實根 (Two distinct real roots) $\\implies \\Delta > 0$：<br>$$\\Delta = (-24)^2 - 4(6)(-c) > 0$$<br>$$576 + 24c > 0 \\implies 24c > -576 \\implies c > -24$$"
+            }
+        ];
+
+        function initQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('quiz-score').innerText = `0 / ${quizData.length}`;
+            document.getElementById('quiz-card').classList.remove('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quiz-progress').innerText = `題目 ${currentQuizIndex + 1} / ${quizData.length}`;
+            document.getElementById('quiz-category').innerText = q.category;
+
+            let questionHTML = q.question;
+            if (isBilingual && q.questionEn) {
+                questionHTML += `<div class="text-xs text-indigo-700 font-normal mt-1 bg-indigo-50/70 p-2 rounded border border-indigo-100">${q.questionEn}</div>`;
+            }
+            document.getElementById('quiz-question').innerHTML = questionHTML;
+
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+
+            document.getElementById('quiz-feedback').classList.add('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "text-left px-4 py-3 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-400 rounded-xl text-sm font-medium transition flex items-center justify-between group";
+                btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-slate-300 group-hover:text-blue-500"></i>`;
+                btn.onclick = () => checkAnswer(idx);
+                optsContainer.appendChild(btn);
+            });
+
+            renderMathInContainer(document.getElementById('quiz-card'));
+        }
+
+        function checkAnswer(selectedIdx) {
+            const q = quizData[currentQuizIndex];
+            const feedbackBox = document.getElementById('quiz-feedback');
+            const feedbackHeader = document.getElementById('feedback-header');
+            const feedbackBody = document.getElementById('feedback-body');
+
+            const buttons = document.getElementById('quiz-options').querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedIdx === q.answer) {
+                score++;
+                document.getElementById('quiz-score').innerText = `${score} / ${quizData.length}`;
+                feedbackBox.className = "p-4 rounded-xl text-sm space-y-1 bg-emerald-50 border border-emerald-200 text-emerald-900";
+                feedbackHeader.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> 回答正確！';
+            } else {
+                feedbackBox.className = "p-4 rounded-xl text-sm space-y-1 bg-rose-50 border border-rose-200 text-rose-900";
+                feedbackHeader.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600 mr-2"></i> 答錯了，正確答案是：${q.options[q.answer]}`;
+            }
+
+            feedbackBody.innerHTML = q.explanation;
+            feedbackBox.classList.remove('hidden');
+
+            renderMathInContainer(feedbackBox);
+        }
+
+        function nextQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizData.length) {
+                loadQuizQuestion();
+            } else {
+                showQuizResult();
+            }
+        }
+
+        function showQuizResult() {
+            document.getElementById('quiz-card').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+
+            const comment = document.getElementById('final-comment');
+            if (score === 5) {
+                comment.innerText = "太棒了！你完全掌握了二次圖像、判別式 Δ 及 DSE 卷一移項解題技巧！";
+            } else if (score >= 3) {
+                comment.innerText = "做得好！你對圖像概念已有良好基礎，可以多加練習 DSE 不等式移項題目！";
+            } else {
+                comment.innerText = "別灰心！建議回到「動態圖像探索器」載入 DSE 試題多拖動幾次滑桿，觀察交點的變化喔！";
+            }
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+    </script>
+</body>
+</html>
