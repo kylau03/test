@@ -28,10 +28,10 @@
             height: 250px;
         }
         @media (min-width: 640px) {
-            .canvas-container { height: 340px; }
+            .canvas-container { height: 320px; }
         }
         @media (min-width: 1024px) {
-            .canvas-container { height: 420px; }
+            .canvas-container { height: 380px; }
         }
         /* Touch optimization & tap area enhancements */
         input[type=range] {
@@ -95,7 +95,7 @@
 
         <!-- TAB 1: 動態圖像與判別式探索器 -->
         <section id="section-explorer" class="space-y-4 sm:space-y-6">
-            <!-- 學習提示橫幅 -->
+            <!-- 學習提示橫幅 (帶有隱藏按鈕) -->
             <div id="learning-focus-banner" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3.5 sm:p-4 rounded-xl shadow-md flex items-center justify-between transition-all duration-300">
                 <div class="flex items-center space-x-2.5 sm:space-x-3 pr-2">
                     <span class="bg-white text-blue-600 text-[11px] sm:text-xs font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0">學習重點</span>
@@ -111,12 +111,11 @@
                 </button>
             </div>
 
+            <!-- 重新調整順序的網格布局：手機端依序為 Canvas -> 滑桿 -> 判別式計算 -> 情況總結 -> 快速例題 -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                 
-                <!-- 右側繪圖畫布與分析 (Moved first on mobile for immediate visual feedback) -->
-                <div class="lg:col-span-7 order-1 lg:order-2 space-y-4 sm:space-y-5">
-                    
-                    <!-- Canvas 畫布卡片 -->
+                <!-- 1. Canvas 畫布卡片 (Mobile Order 1, Desktop Right Col 1) -->
+                <div class="lg:col-span-7 lg:col-start-6 lg:row-start-1 order-1 space-y-4">
                     <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200">
                         <div class="flex flex-wrap justify-between items-center mb-2 sm:mb-3 gap-1">
                             <h3 class="font-bold text-slate-800 text-xs sm:text-base flex items-center">
@@ -129,35 +128,33 @@
                         </div>
 
                         <!-- Canvas HTML -->
-                        <div class="canvas-container">
-                            <canvas id="graphCanvas" class="w-full h-full touch-none"></canvas>
+                        <div class="canvas-container relative overflow-hidden rounded-lg">
+                            <canvas id="graphCanvas" class="w-full h-full touch-none cursor-grab active:cursor-grabbing"></canvas>
+                            
+                            <!-- 縮放與平移手勢控制鈕 / Zoom & Pan Overlay Controls -->
+                            <div class="absolute top-2 right-2 flex flex-col space-y-1 z-10 no-select">
+                                <button onclick="zoomGraph(1.2)" title="放大 / Zoom In" class="w-8 h-8 bg-white/90 hover:bg-white text-slate-700 rounded-lg shadow border border-slate-200 flex items-center justify-center font-bold text-sm transition active:scale-95">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                                <button onclick="zoomGraph(0.8)" title="縮小 / Zoom Out" class="w-8 h-8 bg-white/90 hover:bg-white text-slate-700 rounded-lg shadow border border-slate-200 flex items-center justify-center font-bold text-sm transition active:scale-95">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <button onclick="resetView()" title="重置視角 / Reset View" class="w-8 h-8 bg-white/90 hover:bg-white text-blue-600 rounded-lg shadow border border-slate-200 flex items-center justify-center font-bold text-xs transition active:scale-95">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            </div>
+
+                            <!-- 手勢提示標籤 / Gesture Hint Badge -->
+                            <div class="absolute bottom-2 left-2 bg-slate-900/75 text-white text-[10px] sm:text-xs px-2.5 py-1 rounded-md backdrop-blur-xs pointer-events-none flex items-center space-x-1.5 shadow-sm">
+                                <i class="fa-solid fa-hand-pointer text-amber-300"></i>
+                                <span>雙指縮放 / 拖動平移 <span class="en-text hidden">(Pinch to zoom / Drag to pan)</span></span>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- 圖像與根的關係結論卡片 -->
-                    <div id="conclusion-card" class="p-3.5 sm:p-5 rounded-xl border-2 transition-all duration-300 bg-emerald-50 border-emerald-300 text-emerald-900">
-                        <div class="flex items-start space-x-3 sm:space-x-4">
-                            <div id="conclusion-icon" class="text-2xl sm:text-3xl text-emerald-600 mt-0.5 shrink-0">
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                            <div class="space-y-1 w-full overflow-hidden">
-                                <h4 id="conclusion-title" class="font-bold text-xs sm:text-base">情況 1：圖像與 $x$ 軸相交於兩點 ($\Delta > 0$)</h4>
-                                <p id="conclusion-desc" class="text-xs sm:text-sm leading-relaxed">
-                                    圖像有 <strong class="text-emerald-700">2 個 $x$-截距</strong>。對應的一元二次方程 $ax^2+bx+c=0$ 有 <strong class="underline">兩個相異實根</strong> (Two distinct real roots)。
-                                </p>
-                                <div id="conclusion-roots" class="text-xs font-mono font-bold bg-white/80 p-2 rounded border border-emerald-200 mt-2 text-emerald-800 math-scroll">
-                                    $x$-截距 / 方程的實根: $x_1 \approx -2.00$, $x_2 \approx 1.00$
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
 
-                <!-- 左側控制面板 (Order 2 on mobile) -->
-                <div class="lg:col-span-5 order-2 lg:order-1 space-y-4 sm:space-y-5">
-                    
-                    <!-- 手動滑桿控制 -->
+                <!-- 2. 手動滑桿控制 (Mobile Order 2 - 緊貼圖像下方, Desktop Left Col 1) -->
+                <div class="lg:col-span-5 lg:col-start-1 lg:row-start-1 order-2 space-y-4">
                     <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 space-y-3 sm:space-y-4 no-select">
                         <h3 class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
                             <span><i class="fa-solid fa-sliders text-indigo-500 mr-1.5"></i> 自由調整二次函數係數</span>
@@ -177,7 +174,7 @@
                         <!-- 係數 b -->
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label class="text-xs sm:text-sm font-bold text-slate-700">係數 $b$ <span class="en-text text-slate-400 font-normal hidden">(Axis)</span>:</label>
+                                <label class="text-xs sm:text-sm font-bold text-slate-700">係數 $b$ <span class="en-text text-slate-400 font-normal hidden">(Axis of symmetry)</span>:</label>
                                 <span id="val-b" class="font-mono font-bold text-blue-600 text-sm sm:text-base bg-blue-50 px-2 py-0.5 rounded">1</span>
                             </div>
                             <input type="range" id="slider-b" min="-24" max="24" step="1" value="1" oninput="updateGraph()" class="w-full accent-blue-600">
@@ -192,8 +189,10 @@
                             <input type="range" id="slider-c" min="-25" max="25" step="1" value="-2" oninput="updateGraph()" class="w-full accent-blue-600">
                         </div>
                     </div>
+                </div>
 
-                    <!-- 即時判別式計算卡片 -->
+                <!-- 3. 即時判別式計算卡片 (Mobile Order 3, Desktop Left Col 2) -->
+                <div class="lg:col-span-5 lg:col-start-1 lg:row-start-2 order-3 space-y-4">
                     <div class="bg-indigo-900 text-white p-4 sm:p-5 rounded-xl shadow-lg space-y-3">
                         <div class="flex justify-between items-center border-b border-indigo-700/60 pb-2">
                             <h4 class="font-bold text-xs sm:text-sm flex items-center">
@@ -210,8 +209,30 @@
                             <div class="text-amber-300 font-bold text-sm sm:text-base pt-1">計算結果: <span id="calc-result-display" class="text-amber-300 font-bold"></span></div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- 課本及 DSE 試題快速載入 -->
+                <!-- 4. 圖像與根的關係結論卡片 (Situation Part) (Mobile Order 4 - 移至下方, Desktop Right Col 2) -->
+                <div class="lg:col-span-7 lg:col-start-6 lg:row-start-2 order-4 space-y-4">
+                    <div id="conclusion-card" class="p-3.5 sm:p-5 rounded-xl border-2 transition-all duration-300 bg-emerald-50 border-emerald-300 text-emerald-900">
+                        <div class="flex items-start space-x-3 sm:space-x-4">
+                            <div id="conclusion-icon" class="text-2xl sm:text-3xl text-emerald-600 mt-0.5 shrink-0">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="space-y-1 w-full overflow-hidden">
+                                <h4 id="conclusion-title" class="font-bold text-xs sm:text-base">情況 1：圖像與 $x$ 軸相交於兩點 ($\Delta > 0$)</h4>
+                                <p id="conclusion-desc" class="text-xs sm:text-sm leading-relaxed">
+                                    圖像有 <strong class="text-emerald-700">2 個 $x$-截距</strong>。對應的一元二次方程 $ax^2+bx+c=0$ 有 <strong class="underline">兩個相異實根</strong> (Two distinct real roots)。
+                                </p>
+                                <div id="conclusion-roots" class="text-xs font-mono font-bold bg-white/80 p-2 rounded border border-emerald-200 mt-2 text-emerald-800 math-scroll">
+                                    $x$-截距 / 方程的實根: $x_1 \approx -2.00$, $x_2 \approx 1.00$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. 課本及 DSE 試題快速載入 (Mobile Order 5, Desktop Left Col 3) -->
+                <div class="lg:col-span-5 lg:col-start-1 lg:row-start-3 order-5 space-y-4">
                     <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                         <h3 class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center justify-between">
                             <span><i class="fa-solid fa-bookmark text-blue-500 mr-1.5"></i> 快速例題載入 (課本 & DSE 題型)</span>
@@ -232,18 +253,18 @@
                             <!-- DSE 試題按鈕 -->
                             <div class="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2">
                                 <button onclick="loadPreset(6, -24, 10)" class="text-left p-2.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 border border-indigo-200 rounded-lg text-xs font-medium transition">
-                                    <div class="text-indigo-800 font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i> DSE 第 7 題</div>
+                                    <div class="text-indigo-800 font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i> DSE 例題 1</div>
                                     <div class="text-slate-600 font-mono text-[11px]">$6x^2-24x+10=0$</div>
                                 </button>
                                 <button onclick="loadPreset(2, 12, 10)" class="text-left p-2.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 border border-indigo-200 rounded-lg text-xs font-medium transition">
-                                    <div class="text-indigo-800 font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i> DSE 第 8 題</div>
+                                    <div class="text-indigo-800 font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i> DSE 例題 2</div>
                                     <div class="text-slate-600 font-mono text-[11px]">$2x^2+12x+10=0$</div>
                                 </button>
                             </div>
                         </div>
                     </div>
-
                 </div>
+
             </div>
         </section>
 
@@ -315,6 +336,20 @@
         let currentC = -2;
         let isBilingual = false;
 
+        let userZoom = 1.0;
+        let panOffsetX = 0;
+        let panOffsetY = 0;
+
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let initialPanX = 0;
+        let initialPanY = 0;
+
+        let initialPinchDist = 0;
+        let initialPinchZoom = 1.0;
+        let initialPinchCenter = { x: 0, y: 0 };
+
         let currentQuizIndex = 0;
         let score = 0;
 
@@ -330,6 +365,8 @@
         window.addEventListener('DOMContentLoaded', () => {
             canvas = document.getElementById('graphCanvas');
             ctx = canvas ? canvas.getContext('2d') : null;
+            
+            initCanvasGestures();
             updateGraph();
             
             // Auto re-render MathInElement on page load
@@ -337,6 +374,100 @@
                 renderMathInContainer(document.body);
             }, 300);
         });
+
+        function initCanvasGestures() {
+            if (!canvas) return;
+
+            // Mouse Drag Panning
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                initialPanX = panOffsetX;
+                initialPanY = panOffsetY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                panOffsetX = initialPanX + (e.clientX - dragStartX);
+                panOffsetY = initialPanY + (e.clientY - dragStartY);
+                updateGraph();
+            });
+
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            // Mouse Wheel Zooming
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+                zoomGraph(zoomFactor);
+            }, { passive: false });
+
+            // Touch Gestures (Pinch-to-zoom & Touch Drag)
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    dragStartX = e.touches[0].clientX;
+                    dragStartY = e.touches[0].clientY;
+                    initialPanX = panOffsetX;
+                    initialPanY = panOffsetY;
+                } else if (e.touches.length === 2) {
+                    isDragging = false;
+                    const t1 = e.touches[0];
+                    const t2 = e.touches[1];
+                    initialPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+                    initialPinchZoom = userZoom;
+                    initialPinchCenter = {
+                        x: (t1.clientX + t2.clientX) / 2,
+                        y: (t1.clientY + t2.clientY) / 2
+                    };
+                    initialPanX = panOffsetX;
+                    initialPanY = panOffsetY;
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isDragging) {
+                    panOffsetX = initialPanX + (e.touches[0].clientX - dragStartX);
+                    panOffsetY = initialPanY + (e.touches[0].clientY - dragStartY);
+                    updateGraph();
+                } else if (e.touches.length === 2) {
+                    const t1 = e.touches[0];
+                    const t2 = e.touches[1];
+                    const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+                    
+                    if (initialPinchDist > 0) {
+                        const scaleFactor = currentDist / initialPinchDist;
+                        userZoom = Math.min(Math.max(0.3, initialPinchZoom * scaleFactor), 5.0);
+                        
+                        const currentCenter = {
+                            x: (t1.clientX + t2.clientX) / 2,
+                            y: (t1.clientY + t2.clientY) / 2
+                        };
+                        panOffsetX = initialPanX + (currentCenter.x - initialPinchCenter.x);
+                        panOffsetY = initialPanY + (currentCenter.y - initialPinchCenter.y);
+                        updateGraph();
+                    }
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) initialPinchDist = 0;
+                if (e.touches.length === 0) isDragging = false;
+            });
+        }
+
+        function zoomGraph(factor) {
+            userZoom = Math.min(Math.max(0.3, userZoom * factor), 5.0);
+            updateGraph();
+        }
+
+        function resetView() {
+            userZoom = 1.0;
+            panOffsetX = 0;
+            panOffsetY = 0;
+            updateGraph();
+        }
 
         window.addEventListener('resize', () => {
             if (currentTab === 'explorer') {
@@ -436,6 +567,7 @@
         }
 
         function resetSliders() {
+            resetView();
             loadPreset(1, 1, -2);
         }
 
@@ -458,23 +590,32 @@
             if (!canvas) return;
             const container = canvas.parentNode;
             canvas.width = container.clientWidth || 600;
-            canvas.height = container.clientHeight || 420;
+            canvas.height = container.clientHeight || 380;
 
             const w = canvas.width;
             const h = canvas.height;
-            const originX = w / 2;
-            const originY = h / 2 + 20;
-            const scale = 25; // 25px per math unit
+            const effectiveScale = 25 * userZoom;
+            const originX = w / 2 + panOffsetX;
+            const originY = h / 2 + 20 + panOffsetY;
 
             ctx.clearRect(0, 0, w, h);
+
+            // Dynamic grid tick step based on zoom level
+            let step = 1;
+            if (effectiveScale < 12) step = 5;
+            else if (effectiveScale < 22) step = 2;
 
             // Draw grid
             ctx.strokeStyle = '#f1f5f9';
             ctx.lineWidth = 1;
-            for (let x = originX % scale; x < w; x += scale) {
+            const gridPx = effectiveScale * step;
+            
+            const startX = ((originX % gridPx) + gridPx) % gridPx;
+            for (let x = startX; x < w; x += gridPx) {
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
             }
-            for (let y = originY % scale; y < h; y += scale) {
+            const startY = ((originY % gridPx) + gridPx) % gridPx;
+            for (let y = startY; y < h; y += gridPx) {
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
             }
 
@@ -483,23 +624,32 @@
             ctx.lineWidth = 2;
 
             // X-axis
-            ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
+            if (originY >= 0 && originY <= h) {
+                ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
+            }
             // Y-axis
-            ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, h); ctx.stroke();
+            if (originX >= 0 && originX <= w) {
+                ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, h); ctx.stroke();
+            }
 
             // Axis labels & Ticks
             ctx.fillStyle = '#64748b';
             ctx.font = '11px sans-serif';
-            ctx.fillText('x', w - 15, originY - 8);
-            ctx.fillText('y', originX + 8, 15);
-            ctx.fillText('0', originX - 12, originY + 15);
+            if (originY >= 0 && originY <= h) ctx.fillText('x', w - 15, Math.max(15, Math.min(h - 5, originY - 8)));
+            if (originX >= 0 && originX <= w) ctx.fillText('y', Math.max(5, Math.min(w - 15, originX + 8)), 15);
+            if (originX >= 0 && originX <= w && originY >= 0 && originY <= h) {
+                ctx.fillText('0', originX - 12, originY + 15);
+            }
 
-            for (let xMath = -10; xMath <= 10; xMath += 2) {
+            const minMathX = Math.floor((-originX) / effectiveScale);
+            const maxMathX = Math.ceil((w - originX) / effectiveScale);
+
+            for (let xMath = Math.floor(minMathX / step) * step; xMath <= maxMathX; xMath += step) {
                 if (xMath === 0) continue;
-                const sx = originX + xMath * scale;
-                if (sx > 10 && sx < w - 10) {
+                const sx = originX + xMath * effectiveScale;
+                if (sx > 10 && sx < w - 10 && originY >= 0 && originY <= h) {
                     ctx.beginPath(); ctx.moveTo(sx, originY - 4); ctx.lineTo(sx, originY + 4); ctx.stroke();
-                    ctx.fillText(xMath, sx - 6, originY + 16);
+                    ctx.fillText(xMath, sx - 6, Math.max(15, Math.min(h - 5, originY + 16)));
                 }
             }
 
@@ -510,9 +660,9 @@
             let first = true;
 
             for (let px = 0; px <= w; px += 2) {
-                const xMath = (px - originX) / scale;
+                const xMath = (px - originX) / effectiveScale;
                 const yMath = a * xMath * xMath + b * xMath + c;
-                const py = originY - yMath * scale;
+                const py = originY - yMath * effectiveScale;
 
                 if (first) {
                     ctx.moveTo(px, py);
@@ -526,8 +676,8 @@
             // Vertex
             const vxMath = -b / (2 * a);
             const vyMath = c - (b * b) / (4 * a);
-            const svx = originX + vxMath * scale;
-            const svy = originY - vyMath * scale;
+            const svx = originX + vxMath * effectiveScale;
+            const svy = originY - vyMath * effectiveScale;
 
             if (svx >= 0 && svx <= w && svy >= 0 && svy <= h) {
                 ctx.fillStyle = '#2563eb';
@@ -549,7 +699,7 @@
                 const x2Math = (-b + Math.sqrt(delta)) / (2 * a);
 
                 [x1Math, x2Math].forEach((xM, i) => {
-                    const sx = originX + xM * scale;
+                    const sx = originX + xM * effectiveScale;
                     const sy = originY;
                     if (sx >= 0 && sx <= w) {
                         ctx.fillStyle = '#ef4444';
@@ -567,7 +717,7 @@
                 });
             } else if (Math.abs(delta) < 0.0001) {
                 const x0Math = -b / (2 * a);
-                const sx = originX + x0Math * scale;
+                const sx = originX + x0Math * effectiveScale;
                 const sy = originY;
                 if (sx >= 0 && sx <= w) {
                     ctx.fillStyle = '#f59e0b';
@@ -664,86 +814,178 @@
             renderMathInContainer(card);
         }
 
-        const quizData = [
-            {
-                question: "1. 觀察二次函數 $y = ax^2 + bx + c$ 的圖像。若圖像與 $x$ 軸相交於 $(-3, 0)$ 和 $(1, 0)$ 兩點，對應方程 $ax^2 + bx + c = 0$ 的解是什麼？",
-                questionEn: "1. Consider the graph of $y = ax^2 + bx + c$. If the graph intersects the $x$-axis at $(-3, 0)$ and $(1, 0)$, what are the solutions to $ax^2 + bx + c = 0$?",
-                category: "圖像概念 (Graph Concept)",
-                options: [
-                    "$x = -3$ 或 $x = 1$",
-                    "$x = 3$ 或 $x = -1$",
-                    "$x = 0$",
-                    "沒有實根 (No real roots)"
-                ],
-                answer: 0,
-                explanation: "圖像在 $x$ 軸上的交點（$x$-截距 / $x$-intercepts）即為當 $y=0$ 時對應的 $x$ 值，因此方程的解就是 $x = -3$ 或 $x = 1$。"
-            },
-            {
-                question: "2. 若二次函數 $y = 2x^2 - 4x + k$ 的圖像與 $x$ 軸「沒有交點」，判別式 $\\Delta$ 的數值必定滿足以下哪項條件？",
-                questionEn: "2. If the graph of $y = 2x^2 - 4x + k$ has NO intersection with the $x$-axis, which condition must the discriminant $\\Delta$ satisfy?",
-                category: "判別式性質 (Discriminant Properties)",
-                options: [
-                    "$\\Delta > 0$",
-                    "$\\Delta = 0$",
-                    "$\\Delta < 0$",
-                    "無法確定 (Cannot be determined)"
-                ],
-                answer: 2,
-                explanation: "圖像與 $x$ 軸沒有交點 (no $x$-intercepts) 代表方程沒有實根 (no real roots)，因此判別式 $\\Delta = b^2 - 4ac < 0$ (負數/negative)。"
-            },
-            {
-                question: "3. 已知判別式 $\\Delta = b^2 - 4ac = 0$，則二次函數 $y = ax^2 + bx + c$ 的圖像與 $x$ 軸有幾個交點？",
-                questionEn: "3. Given that the discriminant $\\Delta = b^2 - 4ac = 0$, how many $x$-intercepts does the graph of $y = ax^2 + bx + c$ have?",
-                category: "二重根概念 (Double Root Concept)",
-                options: [
-                    "2 個相異交點 (2 distinct points)",
-                    "只有 1 個交點 / 頂點接觸 (Only 1 point / touches axis)",
-                    "沒有交點 (No points)",
-                    "無數個交點 (Infinitely many)"
-                ],
-                answer: 1,
-                explanation: "當 $\\Delta = 0$ 時，方程有一個二重實根 (one double real root)，圖像的頂點 (vertex) 恰好單點接觸 $x$ 軸，因此只有 1 個交點。"
-            },
-            {
-                question: "4. 對於方程 $x^2 - 6x + 9 = 0$，計算其判別式 $\\Delta$，並判斷圖像與 $x$ 軸的交點情況。",
-                questionEn: "4. For equation $x^2 - 6x + 9 = 0$, calculate its discriminant $\\Delta$ and determine the number of $x$-intercepts.",
-                category: "計算應用 (Calculations)",
-                options: [
-                    "$\\Delta = 72 > 0$，有 2 個交點 (2 points)",
-                    "$\\Delta = 0$，有 1 個交點 (1 point)",
-                    "$\\Delta = -72 < 0$，沒有交點 (No points)",
-                    "$\\Delta = -36 < 0$，沒有交點 (No points)"
-                ],
-                answer: 1,
-                explanation: "$\\Delta = (-6)^2 - 4(1)(9) = 36 - 36 = 0$。因為 $\\Delta = 0$，所以圖像與 $x$ 軸只有 1 個交點。"
-            },
-            {
-                question: "5. 【DSE 卷一實戰題】設 $c$ 為一實常數。已知方程 $6x^2 - 24x = c$ 有兩個相異的實根 (two distinct real roots)，求 $c$ 值的範圍 (range of values of $c$)。",
-                questionEn: "5. [HKDSE Paper 1] Let $c$ be a real constant. Given that $6x^2 - 24x = c$ has two distinct real roots, find the range of values of $c$.",
-                category: "HKDSE 試題銜接 (DSE Exam Practice)",
-                options: [
-                    "$c > -24$",
-                    "$c < -24$",
-                    "$c > 24$",
-                    "$c < 24$"
-                ],
-                answer: 0,
-                explanation: "【DSE 解題技巧】：先將方程移項為標準式 (Rearrange to standard form): $6x^2 - 24x - c = 0$。<br>其中 $a = 6$, $b = -24$, 常數項為 $-c$。<br>方程有兩個相異實根 (Two distinct real roots) $\\implies \\Delta > 0$：<br>$$\\Delta = (-24)^2 - 4(6)(-c) > 0$$<br>$$576 + 24c > 0 \\implies 24c > -576 \\implies c > -24$$"
+        let activeQuizQuestions = [];
+
+        function generateRandomQuiz() {
+            const questions = [];
+
+            // Helper to shuffle options array
+            function shuffle(arr) {
+                const array = [...arr];
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
             }
-        ];
+
+            // Helper to generate random integer in range [min, max], excluding certain numbers
+            function randInt(min, max, exclude = []) {
+                let val;
+                do {
+                    val = Math.floor(Math.random() * (max - min + 1)) + min;
+                } while (exclude.includes(val));
+                return val;
+            }
+
+            // --- QUESTION 1: Graph Intercepts -> Roots when y = 0 ---
+            const r1 = randInt(-5, 1, [0]);
+            const r2 = randInt(2, 6, [0, r1]);
+            const a1 = [1, -1, 2][randInt(0, 2)];
+            const b1 = -a1 * (r1 + r2);
+            const c1 = a1 * r1 * r2;
+            
+            const eq1Str = `${a1 === 1 ? '' : a1 === -1 ? '-' : a1}x^2 ${b1 >= 0 ? '+ ' + b1 : '- ' + Math.abs(b1)}x ${c1 >= 0 ? '+ ' + c1 : '- ' + Math.abs(c1)}`;
+            const correctOpt1 = `$x = ${r1}$ 或 $x = ${r2}$`;
+            const opts1 = shuffle([
+                correctOpt1,
+                `$x = ${-r1}$ 或 $x = ${-r2}$`,
+                `$x = 0$`,
+                `沒有實根 (No real roots)`
+            ]);
+
+            questions.push({
+                question: `1. 觀察二次函數 $y = ${eq1Str}$ 的圖像。若圖像與 $x$ 軸相交於 $(${r1}, 0)$ 和 $(${r2}, 0)$ 兩點，當 $y = 0$ 時方程的解是什麼？`,
+                questionEn: `1. Consider the graph of $y = ${eq1Str}$. If it intersects the $x$-axis at $(${r1}, 0)$ and $(${r2}, 0)$, what are the solutions when $y = 0$?`,
+                category: "圖像概念 (Graph Concept)",
+                options: opts1,
+                answer: opts1.indexOf(correctOpt1),
+                explanation: `圖像在 $x$ 軸上的交點（$x$-截距）即為當 $y=0$ 時對應的 $x$ 值，因此方程的解就是 $x = ${r1}$ 或 $x = ${r2}$。`
+            });
+
+            // --- QUESTION 2: Geometric Condition -> Discriminant Delta Condition ---
+            const scenarios2 = [
+                { text: "沒有交點 (no $x$-intercepts)", textEn: "has NO intersection with the $x$-axis", sign: "\\Delta < 0", desc: "沒有實根 (no real roots)", correctIdx: 2 },
+                { text: "只有 1 個交點 / 頂點接觸 $x$ 軸", textEn: "touches the $x$-axis at 1 point", sign: "\\Delta = 0", desc: "有一二重實根 (one double real root)", correctIdx: 1 },
+                { text: "相交於 2 個點", textEn: "intersects the $x$-axis at 2 distinct points", sign: "\\Delta > 0", desc: "有兩個相異實根 (two distinct real roots)", correctIdx: 0 }
+            ];
+            const sc2 = scenarios2[randInt(0, 2)];
+            const kA = randInt(1, 3);
+            const kB = randInt(-6, 6, [0]);
+            const opts2 = [
+                "$\\Delta > 0$",
+                "$\\Delta = 0$",
+                "$\\Delta < 0$",
+                "無法確定 (Cannot be determined)"
+            ];
+
+            questions.push({
+                question: `2. 若二次函數 $y = ${kA === 1 ? '' : kA}x^2 ${kB > 0 ? '+ ' + kB : '- ' + Math.abs(kB)}x + k$ 的圖像與 $x$ 軸「${sc2.text}」，判別式 $\\Delta$ 的數值必定滿足以下哪項條件？`,
+                questionEn: `2. If the graph of $y = ${kA === 1 ? '' : kA}x^2 ${kB > 0 ? '+ ' + kB : '- ' + Math.abs(kB)}x + k$ ${sc2.textEn}, which condition must $\\Delta$ satisfy?`,
+                category: "判別式性質 (Discriminant Properties)",
+                options: opts2,
+                answer: sc2.correctIdx,
+                explanation: `圖像「${sc2.text}」代表對應方程${sc2.desc}，因此判別式 $\\Delta$ 必須滿足 $${sc2.sign}$。`
+            });
+
+            // --- QUESTION 3: Delta Value -> Number of Intercepts ---
+            const deltaCases = [
+                { dVal: randInt(12, 45), text: "正數 (Positive)", countText: "2 個相異交點 (2 distinct points)", correctIdx: 0, reason: "有兩個相異實根" },
+                { dVal: 0, text: "零 (Zero)", countText: "只有 1 個交點 / 頂點接觸 (1 point)", correctIdx: 1, reason: "有一個二重實根" },
+                { dVal: -randInt(8, 30), text: "負數 (Negative)", countText: "沒有交點 (No points)", correctIdx: 2, reason: "沒有實根" }
+            ];
+            const dCase = deltaCases[randInt(0, 2)];
+            const opts3 = [
+                "2 個相異交點 (2 distinct points)",
+                "只有 1 個交點 / 頂點接觸 (1 point / touches axis)",
+                "沒有交點 (No points)",
+                "無數個交點 (Infinitely many points)"
+            ];
+
+            questions.push({
+                question: `3. 已知某二次函數 $y = ax^2 + bx + c$ 的判別式 $\\Delta = ${dCase.dVal}$，則其圖像與 $x$ 軸有幾個交點？`,
+                questionEn: `3. Given that the discriminant $\\Delta = ${dCase.dVal}$ for $y = ax^2 + bx + c$, how many $x$-intercepts does its graph have?`,
+                category: "根與交點 (Roots & Intercepts)",
+                options: opts3,
+                answer: dCase.correctIdx,
+                explanation: `因為判別式 $\\Delta = ${dCase.dVal}$（${dCase.text}），代表方程${dCase.reason}，所以圖像與 $x$ 軸有 ${dCase.countText}。`
+            });
+
+            // --- QUESTION 4: Calculation of Delta for Dynamic Equation ---
+            const q4A = [1, 2, -1][randInt(0, 2)];
+            const q4B = randInt(-8, 8, [0]);
+            const q4C = randInt(-6, 6, [0]);
+            const calcDelta = q4B * q4B - 4 * q4A * q4C;
+
+            const q4Eq = `${q4A === 1 ? '' : q4A === -1 ? '-' : q4A}x^2 ${q4B > 0 ? '+ ' + q4B : '- ' + Math.abs(q4B)}x ${q4C > 0 ? '+ ' + q4C : '- ' + Math.abs(q4C)} = 0`;
+            const interceptDesc = calcDelta > 0 ? "有 2 個交點 (2 points)" : (calcDelta === 0 ? "有 1 個交點 (1 point)" : "沒有交點 (No points)");
+            
+            const correctOpt4 = `$\\Delta = ${calcDelta}$，${interceptDesc}`;
+            const wrongDelta1 = q4B * q4B + 4 * q4A * q4C;
+            const wrongDelta2 = -calcDelta;
+
+            let opts4 = shuffle([
+                correctOpt4,
+                `$\\Delta = ${wrongDelta1}$，${wrongDelta1 > 0 ? '有 2 個交點' : '沒有交點'}`,
+                `$\\Delta = ${wrongDelta2}$，${wrongDelta2 > 0 ? '有 2 個交點' : '沒有交點'}`,
+                `$\\Delta = ${calcDelta + 8}$，有 1 個交點`
+            ]);
+
+            // Ensure unique option texts
+            opts4 = Array.from(new Set(opts4));
+            while (opts4.length < 4) {
+                opts4.push(`$\\Delta = ${calcDelta - (opts4.length * 6)}$，沒有交點`);
+            }
+
+            const strA = q4A < 0 ? `(${q4A})` : `${q4A}`;
+            const strB = q4B < 0 ? `(${q4B})` : `${q4B}`;
+            const strC = q4C < 0 ? `(${q4C})` : `${q4C}`;
+
+            questions.push({
+                question: `4. 對於方程 $${q4Eq}$，計算其判別式 $\\Delta$，並判斷圖像與 $x$ 軸的交點情況。`,
+                questionEn: `4. Calculate the discriminant $\\Delta$ for $${q4Eq}$ and determine the number of $x$-intercepts.`,
+                category: "計算應用 (Calculations)",
+                options: opts4,
+                answer: opts4.indexOf(correctOpt4),
+                explanation: `$$\\Delta = b^2 - 4ac = ${strB}^2 - 4(${strA})(${strC}) = ${q4B * q4B} - (${4 * q4A * q4C}) = ${calcDelta}$$<br>因為 $\\Delta ${calcDelta > 0 ? '> 0' : (calcDelta === 0 ? '= 0' : '< 0')}$，所以圖像${interceptDesc}。`
+            });
+
+            // --- QUESTION 5: Finding k for Double Root Condition ---
+            const bVal5 = randInt(2, 6) * 2 * ([1, -1][randInt(0, 1)]);
+            const kAns5 = (bVal5 * bVal5) / 4;
+            const correctOpt5 = `$k = ${kAns5}$`;
+            const opts5 = shuffle([
+                correctOpt5,
+                `$k = ${kAns5 * 2}$`,
+                `$k = ${-kAns5}$`,
+                `$k = ${Math.abs(bVal5)}$`
+            ]);
+
+            questions.push({
+                question: `5. 若方程 $x^2 ${bVal5 > 0 ? '+ ' + bVal5 : '- ' + Math.abs(bVal5)}x + k = 0$ 有一個二重實根 (one double real root)，求 $k$ 的值。`,
+                questionEn: `5. If equation $x^2 ${bVal5 > 0 ? '+ ' + bVal5 : '- ' + Math.abs(bVal5)}x + k = 0$ has one double real root, find the value of $k$.`,
+                category: "未知數求解 (Solving for k)",
+                options: opts5,
+                answer: opts5.indexOf(correctOpt5),
+                explanation: `方程有二重實根 $\\implies \\Delta = 0$：<br>$$\\Delta = (${bVal5})^2 - 4(1)(k) = 0$$<br>$$${bVal5 * bVal5} - 4k = 0 \\implies 4k = ${bVal5 * bVal5} \\implies k = ${kAns5}$$`
+            });
+
+            return questions;
+        }
 
         function initQuiz() {
+            activeQuizQuestions = generateRandomQuiz();
             currentQuizIndex = 0;
             score = 0;
-            document.getElementById('quiz-score').innerText = `0 / ${quizData.length}`;
+            document.getElementById('quiz-score').innerText = `0 / ${activeQuizQuestions.length}`;
             document.getElementById('quiz-card').classList.remove('hidden');
             document.getElementById('quiz-result').classList.add('hidden');
             loadQuizQuestion();
         }
 
         function loadQuizQuestion() {
-            const q = quizData[currentQuizIndex];
-            document.getElementById('quiz-progress').innerText = `題目 ${currentQuizIndex + 1} / ${quizData.length}`;
+            const q = activeQuizQuestions[currentQuizIndex];
+            document.getElementById('quiz-progress').innerText = `題目 ${currentQuizIndex + 1} / ${activeQuizQuestions.length}`;
             document.getElementById('quiz-category').innerText = q.category;
 
             let questionHTML = q.question;
@@ -769,7 +1011,7 @@
         }
 
         function checkAnswer(selectedIdx) {
-            const q = quizData[currentQuizIndex];
+            const q = activeQuizQuestions[selectedIdx === undefined ? 0 : currentQuizIndex];
             const feedbackBox = document.getElementById('quiz-feedback');
             const feedbackHeader = document.getElementById('feedback-header');
             const feedbackBody = document.getElementById('feedback-body');
@@ -779,7 +1021,7 @@
 
             if (selectedIdx === q.answer) {
                 score++;
-                document.getElementById('quiz-score').innerText = `${score} / ${quizData.length}`;
+                document.getElementById('quiz-score').innerText = `${score} / ${activeQuizQuestions.length}`;
                 feedbackBox.className = "p-4 rounded-xl text-sm space-y-1 bg-emerald-50 border border-emerald-200 text-emerald-900";
                 feedbackHeader.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> 回答正確！';
             } else {
@@ -795,7 +1037,7 @@
 
         function nextQuestion() {
             currentQuizIndex++;
-            if (currentQuizIndex < quizData.length) {
+            if (currentQuizIndex < activeQuizQuestions.length) {
                 loadQuizQuestion();
             } else {
                 showQuizResult();
@@ -809,11 +1051,11 @@
 
             const comment = document.getElementById('final-comment');
             if (score === 5) {
-                comment.innerText = "太棒了！你完全掌握了二次圖像、判別式 Δ 及 DSE 卷一移項解題技巧！";
+                comment.innerText = "太棒了！你完全掌握了二次圖像、判別式 Δ 及二次方程求解技巧！";
             } else if (score >= 3) {
-                comment.innerText = "做得好！你對圖像概念已有良好基礎，可以多加練習 DSE 不等式移項題目！";
+                comment.innerText = "做得好！你對圖像與判別式的概念已有良好基礎！";
             } else {
-                comment.innerText = "別灰心！建議回到「動態圖像探索器」載入 DSE 試題多拖動幾次滑桿，觀察交點的變化喔！";
+                comment.innerText = "別灰心！建議回到「動態圖像探索器」多調整幾次滑桿，觀察交點與 Δ 的關係喔！";
             }
         }
 
