@@ -855,12 +855,12 @@
             ]);
 
             questions.push({
-                question: `1. 觀察二次函數 $y = ${eq1Str}$ 的圖像。若圖像與 $x$ 軸相交於 $(${r1}, 0)$ 和 $(${r2}, 0)$ 兩點，當 $y = 0$ 時方程的解是什麼？`,
+                question: `1. 考慮 $y = ${eq1Str}$ 的圖像。若圖像與 $x$ 軸相交於 $(${r1}, 0)$ 和 $(${r2}, 0)$ 兩點，則方程 ${eq1Str} = 0$ 的解是什麼？`,
                 questionEn: `1. Consider the graph of $y = ${eq1Str}$. If it intersects the $x$-axis at $(${r1}, 0)$ and $(${r2}, 0)$, what are the solutions when $y = 0$?`,
                 category: "圖像概念 (Graph Concept)",
                 options: opts1,
                 answer: opts1.indexOf(correctOpt1),
-                explanation: `圖像在 $x$ 軸上的交點（$x$-截距）即為當 $y=0$ 時對應的 $x$ 值，因此方程的解就是 $x = ${r1}$ 或 $x = ${r2}$。`
+                explanation: `圖像在 $x$ 軸上的交點（$x$-截距）即為方程的解，因此是 $x = ${r1}$ 或 $x = ${r2}$。`
             });
 
             // --- QUESTION 2: Geometric Condition -> Discriminant Delta Condition ---
