@@ -772,7 +772,7 @@
 
                 card.className = "p-5 rounded-xl border-2 transition-all duration-300 bg-emerald-50 border-emerald-300 text-emerald-900";
                 icon.className = "text-3xl text-emerald-600 mt-1";
-                icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                icon.innerHTML = '';
                 title.innerHTML = "情況 1：圖像與 $x$ 軸相交於兩點 ($\Delta > 0$)" + (isBilingual ? '<span class="block text-xs font-normal text-emerald-700 mt-0.5">Case 1: Graph intersects $x$-axis at 2 points ($\Delta > 0$)</span>' : '');
                 desc.innerHTML = '圖像有 <strong class="text-emerald-700">2 個 $x$-截距</strong>。對應的一元二次方程 $ax^2+bx+c=0$ 有 <strong class="underline">兩個相異實根</strong> (Two distinct real roots)。';
 
@@ -783,13 +783,13 @@
                 rootsBox.innerHTML = `$x$-截距 / 方程實根 (Intercepts / Real roots): $x_1 \\approx ${rMin}$, $x_2 \\approx ${rMax}$`;
                 rootsBox.classList.remove('hidden');
 
-            } else if (Math.abs(delta) < 0.0001) { // delta === 0
+            } else if (Math.abs(delta) < 0.00001) { // delta === 0
                 badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white";
                 renderLatexToElement('badge-delta-sign', '\\Delta = 0');
 
                 card.className = "p-5 rounded-xl border-2 transition-all duration-300 bg-amber-50 border-amber-300 text-amber-900";
                 icon.className = "text-3xl text-amber-600 mt-1";
-                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                icon.innerHTML = '';
                 title.innerHTML = "情況 2：圖像與 $x$ 軸只相交(接觸)於一點 ($\Delta = 0$)" + (isBilingual ? '<span class="block text-xs font-normal text-amber-800 mt-0.5">Case 2: Graph touches $x$-axis at 1 point ($\Delta = 0$)</span>' : '');
                 desc.innerHTML = '圖像有 <strong class="text-amber-700">1 個 $x$-截距</strong>（頂點即交點）。對應的一元二次方程 $ax^2+bx+c=0$ 有 <strong class="underline">一個二重實根</strong> (One double real root / Equal real roots)。';
 
